@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
 
 import 'tables/merchants_table.dart';
 import 'tables/payment_methods_table.dart';
@@ -16,6 +15,8 @@ import 'tables/categories_table.dart';
 import 'tables/app_settings_table.dart';
 
 part 'app_database.g.dart';
+
+const _nativeChannel = MethodChannel('com.txnvault.txnvault/native');
 
 @DriftDatabase(tables: [
   Merchants,
@@ -53,10 +54,13 @@ class AppDatabase extends _$AppDatabase {
       );
 }
 
+/// The database file lives at the path Android's `SmsReceiver` also writes
+/// to (`context.getDatabasePath(...)`), so incoming SMS captured natively -
+/// even while the Flutter engine isn't running - land in the same file Drift
+/// reads from. See android/.../SmsReceiver.kt.
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'txnvault.sqlite'));
-    return NativeDatabase.createInBackground(file);
+    final path = await _nativeChannel.invokeMethod<String>('getDatabasePath');
+    return NativeDatabase.createInBackground(File(path!));
   });
 }

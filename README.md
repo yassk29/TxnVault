@@ -9,8 +9,12 @@ payments — which most expense trackers ignore.
 
 ## Status
 
-Sprint 1 (project foundation) complete: app scaffolded, local database created,
-navigation working. SMS capture is not implemented yet.
+- **Sprint 1** (project foundation): done — app scaffolded, local database
+  created, navigation working.
+- **Sprint 2** (SMS infrastructure): done — SMS permission flow, a native
+  Android listener that captures incoming SMS in real time, and a one-time
+  inbox backfill on first grant. Captured messages are stored raw in
+  `sms_messages`; parsing them into actual transactions is Sprint 3.
 
 ## Tech Stack
 
@@ -18,6 +22,9 @@ navigation working. SMS capture is not implemented yet.
 - **go_router** (navigation)
 - **Drift** (SQLite ORM, local-only storage)
 - **get_it** (dependency injection)
+- Native Android `BroadcastReceiver` (Kotlin) for SMS capture — writes
+  directly into the same SQLite file Drift uses, so capture survives the
+  Flutter process being killed in the background
 - Android only, no backend, no login (V1)
 
 ## Project Structure
@@ -46,5 +53,5 @@ flutter run
 
 ## Roadmap
 
-- **Now**: SMS capture, transaction parsing, refund tracking, search, dashboard
+- **Now**: transaction parsing, refund tracking, search, dashboard
 - **Later**: CSV export, credit card due tracking, cloud sync, AI insights
