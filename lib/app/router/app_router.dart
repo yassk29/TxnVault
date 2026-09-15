@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/analytics/presentation/screens/analytics_screen.dart';
+import '../../features/dashboard/presentation/screens/autopay_events_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
+import '../../features/dashboard/presentation/screens/sms_review_screen.dart';
 import '../../features/refunds/presentation/screens/refunds_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/transactions/presentation/screens/excluded_transactions_screen.dart';
 import '../../features/transactions/presentation/screens/transactions_screen.dart';
 import '../../shared/widgets/main_scaffold.dart';
 
@@ -47,6 +50,21 @@ final GoRouter appRouter = GoRouter(
           ),
         ]),
       ],
+    ),
+    GoRoute(
+      path: '/sms-review',
+      builder: (context, state) {
+        final tab = int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
+        return SmsReviewScreen(initialTab: tab);
+      },
+    ),
+    GoRoute(
+      path: '/autopay-events',
+      builder: (context, state) => const AutopayEventsScreen(),
+    ),
+    GoRoute(
+      path: '/excluded-transactions',
+      builder: (context, state) => const ExcludedTransactionsScreen(),
     ),
   ],
 );

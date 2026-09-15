@@ -28,6 +28,8 @@ class SmsReceiver : BroadcastReceiver() {
         val body = messages.joinToString(separator = "") { it.messageBody ?: "" }
         val receivedAtSeconds = messages[0].timestampMillis / 1000
 
+        if (!SmsRelevanceFilter.isRelevant(body)) return
+
         try {
             val dbPath = context.getDatabasePath(SmsSchema.DB_NAME).absolutePath
             val db = SQLiteDatabase.openOrCreateDatabase(dbPath, null)

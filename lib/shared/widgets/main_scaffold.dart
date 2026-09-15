@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class MainScaffold extends StatelessWidget {
+import '../../features/transactions/providers/transactions_providers.dart';
+
+class MainScaffold extends ConsumerWidget {
   const MainScaffold({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Keeps SMS->transaction ingestion running for the whole app lifetime,
+    // independent of which tab is visible. This widget only rebuilds on tab
+    // switches, so it won't restart the (non-autoDispose) ingestion loop.
+    ref.watch(transactionIngestionLoopProvider);
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: NavigationBar(

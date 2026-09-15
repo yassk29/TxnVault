@@ -13,6 +13,7 @@ import 'tables/transaction_events_table.dart';
 import 'tables/sms_messages_table.dart';
 import 'tables/categories_table.dart';
 import 'tables/app_settings_table.dart';
+import 'tables/autopay_events_table.dart';
 
 part 'app_database.g.dart';
 
@@ -29,12 +30,13 @@ const _nativeChannel = MethodChannel('com.txnvault.txnvault/native');
   Categories,
   TransactionCategories,
   AppSettings,
+  AutopayEvents,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -50,6 +52,24 @@ class AppDatabase extends _$AppDatabase {
               'CREATE INDEX idx_merchant_name ON merchants(name)');
           await customStatement(
               'CREATE INDEX idx_refund_status ON refunds(refund_status)');
+        },
+        onUpgrade: (Migrator m, int from, int to) async {
+          if (from < 2) {
+            await m.addColumn(transactions, transactions.direction);
+          }
+          if (from < 3) {
+            await m.addColumn(transactions, transactions.smsReceivedAt);
+          }
+          if (from < 4) {
+            await m.addColumn(transactions, transactions.category);
+            await m.createTable(autopayEvents);
+          }
+          if (from < 5) {
+            await m.addColumn(transactions, transactions.isExcluded);
+          }
+          if (from < 6) {
+            await m.addColumn(smsMessages, smsMessages.isDismissed);
+          }
         },
       );
 }

@@ -20,8 +20,12 @@ class RawSmsMessage {
 class NativeSmsChannel {
   static const _channel = MethodChannel('com.txnvault.txnvault/native');
 
-  Future<List<RawSmsMessage>> readInbox() async {
-    final result = await _channel.invokeMethod<List<Object?>>('readSmsInbox');
+  /// [since], when provided, limits the query to messages received on or
+  /// after that date.
+  Future<List<RawSmsMessage>> readInbox({DateTime? since}) async {
+    final result = await _channel.invokeMethod<List<Object?>>('readSmsInbox', {
+      if (since != null) 'sinceMillis': since.millisecondsSinceEpoch,
+    });
     if (result == null) return const [];
     return result
         .cast<Map<Object?, Object?>>()

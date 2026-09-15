@@ -14,8 +14,11 @@ class SmsSyncService {
   final AppDatabase _db;
   final NativeSmsChannel _nativeChannel;
 
-  Future<int> syncInboxHistory() async {
-    final rawMessages = await _nativeChannel.readInbox();
+  /// [since], when provided, only backfills messages received on or after
+  /// that date - lets the user choose a sync depth (Last 7 days / This
+  /// month / etc.) instead of always scanning the entire SMS history.
+  Future<int> syncInboxHistory({DateTime? since}) async {
+    final rawMessages = await _nativeChannel.readInbox(since: since);
     if (rawMessages.isEmpty) return 0;
 
     final existing = await _db.select(_db.smsMessages).get();

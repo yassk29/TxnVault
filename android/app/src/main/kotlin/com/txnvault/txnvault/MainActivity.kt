@@ -19,7 +19,8 @@ class MainActivity : FlutterActivity() {
                     }
                     "readSmsInbox" -> {
                         try {
-                            result.success(readSmsInbox())
+                            val sinceMillis = call.argument<Long>("sinceMillis")
+                            result.success(readSmsInbox(sinceMillis))
                         } catch (e: Exception) {
                             result.error("READ_SMS_FAILED", e.message, null)
                         }
@@ -29,28 +30,36 @@ class MainActivity : FlutterActivity() {
             }
     }
 
-    private fun readSmsInbox(): List<Map<String, Any?>> {
+    /// [sinceMillis], when provided, limits the query to messages received on
+    /// or after that time - lets the user choose how far back to sync
+    /// (Last 7 days / This month / etc.) instead of always pulling the whole
+    /// SMS history, which can be years' worth of messages.
+    private fun readSmsInbox(sinceMillis: Long?): List<Map<String, Any?>> {
         val messages = mutableListOf<Map<String, Any?>>()
         val projection = arrayOf(
             Telephony.Sms.ADDRESS,
             Telephony.Sms.BODY,
             Telephony.Sms.DATE,
         )
+        val selection = if (sinceMillis != null) "${Telephony.Sms.DATE} >= ?" else null
+        val selectionArgs = if (sinceMillis != null) arrayOf(sinceMillis.toString()) else null
         contentResolver.query(
             Telephony.Sms.Inbox.CONTENT_URI,
             projection,
-            null,
-            null,
+            selection,
+            selectionArgs,
             "${Telephony.Sms.DATE} DESC",
         )?.use { cursor ->
             val addressIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.ADDRESS)
             val bodyIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.BODY)
             val dateIndex = cursor.getColumnIndexOrThrow(Telephony.Sms.DATE)
             while (cursor.moveToNext()) {
+                val body = cursor.getString(bodyIndex) ?: ""
+                if (!SmsRelevanceFilter.isRelevant(body)) continue
                 messages.add(
                     mapOf(
                         "address" to (cursor.getString(addressIndex) ?: "unknown"),
-                        "body" to (cursor.getString(bodyIndex) ?: ""),
+                        "body" to body,
                         "date" to cursor.getLong(dateIndex),
                     )
                 )

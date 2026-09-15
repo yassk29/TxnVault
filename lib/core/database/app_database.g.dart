@@ -1296,6 +1296,18 @@ class $TransactionsTable extends Transactions
     requiredDuringInsert: false,
     defaultValue: const Constant('INR'),
   );
+  static const VerificationMeta _directionMeta = const VerificationMeta(
+    'direction',
+  );
+  @override
+  late final GeneratedColumn<String> direction = GeneratedColumn<String>(
+    'direction',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('DEBIT'),
+  );
   static const VerificationMeta _transactionDateMeta = const VerificationMeta(
     'transactionDate',
   );
@@ -1308,6 +1320,46 @@ class $TransactionsTable extends Transactions
         type: DriftSqlType.dateTime,
         requiredDuringInsert: true,
       );
+  static const VerificationMeta _smsReceivedAtMeta = const VerificationMeta(
+    'smsReceivedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> smsReceivedAt =
+      GeneratedColumn<DateTime>(
+        'sms_received_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+        defaultValue: currentDateAndTime,
+      );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('SPEND'),
+  );
+  static const VerificationMeta _isExcludedMeta = const VerificationMeta(
+    'isExcluded',
+  );
+  @override
+  late final GeneratedColumn<bool> isExcluded = GeneratedColumn<bool>(
+    'is_excluded',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_excluded" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
@@ -1383,7 +1435,11 @@ class $TransactionsTable extends Transactions
     cardId,
     amount,
     currency,
+    direction,
     transactionDate,
+    smsReceivedAt,
+    category,
+    isExcluded,
     status,
     bankName,
     description,
@@ -1450,6 +1506,12 @@ class $TransactionsTable extends Transactions
         currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
       );
     }
+    if (data.containsKey('direction')) {
+      context.handle(
+        _directionMeta,
+        direction.isAcceptableOrUnknown(data['direction']!, _directionMeta),
+      );
+    }
     if (data.containsKey('transaction_date')) {
       context.handle(
         _transactionDateMeta,
@@ -1460,6 +1522,27 @@ class $TransactionsTable extends Transactions
       );
     } else if (isInserting) {
       context.missing(_transactionDateMeta);
+    }
+    if (data.containsKey('sms_received_at')) {
+      context.handle(
+        _smsReceivedAtMeta,
+        smsReceivedAt.isAcceptableOrUnknown(
+          data['sms_received_at']!,
+          _smsReceivedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
+    if (data.containsKey('is_excluded')) {
+      context.handle(
+        _isExcludedMeta,
+        isExcluded.isAcceptableOrUnknown(data['is_excluded']!, _isExcludedMeta),
+      );
     }
     if (data.containsKey('status')) {
       context.handle(
@@ -1539,9 +1622,25 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}currency'],
       )!,
+      direction: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}direction'],
+      )!,
       transactionDate: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}transaction_date'],
+      )!,
+      smsReceivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sms_received_at'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      isExcluded: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_excluded'],
       )!,
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -1584,7 +1683,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
   final int? cardId;
   final double amount;
   final String currency;
+  final String direction;
   final DateTime transactionDate;
+  final DateTime smsReceivedAt;
+  final String category;
+  final bool isExcluded;
   final String status;
   final String? bankName;
   final String? description;
@@ -1599,7 +1702,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     this.cardId,
     required this.amount,
     required this.currency,
+    required this.direction,
     required this.transactionDate,
+    required this.smsReceivedAt,
+    required this.category,
+    required this.isExcluded,
     required this.status,
     this.bankName,
     this.description,
@@ -1625,7 +1732,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     }
     map['amount'] = Variable<double>(amount);
     map['currency'] = Variable<String>(currency);
+    map['direction'] = Variable<String>(direction);
     map['transaction_date'] = Variable<DateTime>(transactionDate);
+    map['sms_received_at'] = Variable<DateTime>(smsReceivedAt);
+    map['category'] = Variable<String>(category);
+    map['is_excluded'] = Variable<bool>(isExcluded);
     map['status'] = Variable<String>(status);
     if (!nullToAbsent || bankName != null) {
       map['bank_name'] = Variable<String>(bankName);
@@ -1658,7 +1769,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           : Value(cardId),
       amount: Value(amount),
       currency: Value(currency),
+      direction: Value(direction),
       transactionDate: Value(transactionDate),
+      smsReceivedAt: Value(smsReceivedAt),
+      category: Value(category),
+      isExcluded: Value(isExcluded),
       status: Value(status),
       bankName: bankName == null && nullToAbsent
           ? const Value.absent()
@@ -1689,7 +1804,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       cardId: serializer.fromJson<int?>(json['cardId']),
       amount: serializer.fromJson<double>(json['amount']),
       currency: serializer.fromJson<String>(json['currency']),
+      direction: serializer.fromJson<String>(json['direction']),
       transactionDate: serializer.fromJson<DateTime>(json['transactionDate']),
+      smsReceivedAt: serializer.fromJson<DateTime>(json['smsReceivedAt']),
+      category: serializer.fromJson<String>(json['category']),
+      isExcluded: serializer.fromJson<bool>(json['isExcluded']),
       status: serializer.fromJson<String>(json['status']),
       bankName: serializer.fromJson<String?>(json['bankName']),
       description: serializer.fromJson<String?>(json['description']),
@@ -1711,7 +1830,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       'cardId': serializer.toJson<int?>(cardId),
       'amount': serializer.toJson<double>(amount),
       'currency': serializer.toJson<String>(currency),
+      'direction': serializer.toJson<String>(direction),
       'transactionDate': serializer.toJson<DateTime>(transactionDate),
+      'smsReceivedAt': serializer.toJson<DateTime>(smsReceivedAt),
+      'category': serializer.toJson<String>(category),
+      'isExcluded': serializer.toJson<bool>(isExcluded),
       'status': serializer.toJson<String>(status),
       'bankName': serializer.toJson<String?>(bankName),
       'description': serializer.toJson<String?>(description),
@@ -1729,7 +1852,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     Value<int?> cardId = const Value.absent(),
     double? amount,
     String? currency,
+    String? direction,
     DateTime? transactionDate,
+    DateTime? smsReceivedAt,
+    String? category,
+    bool? isExcluded,
     String? status,
     Value<String?> bankName = const Value.absent(),
     Value<String?> description = const Value.absent(),
@@ -1748,7 +1875,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     cardId: cardId.present ? cardId.value : this.cardId,
     amount: amount ?? this.amount,
     currency: currency ?? this.currency,
+    direction: direction ?? this.direction,
     transactionDate: transactionDate ?? this.transactionDate,
+    smsReceivedAt: smsReceivedAt ?? this.smsReceivedAt,
+    category: category ?? this.category,
+    isExcluded: isExcluded ?? this.isExcluded,
     status: status ?? this.status,
     bankName: bankName.present ? bankName.value : this.bankName,
     description: description.present ? description.value : this.description,
@@ -1771,9 +1902,17 @@ class Transaction extends DataClass implements Insertable<Transaction> {
       cardId: data.cardId.present ? data.cardId.value : this.cardId,
       amount: data.amount.present ? data.amount.value : this.amount,
       currency: data.currency.present ? data.currency.value : this.currency,
+      direction: data.direction.present ? data.direction.value : this.direction,
       transactionDate: data.transactionDate.present
           ? data.transactionDate.value
           : this.transactionDate,
+      smsReceivedAt: data.smsReceivedAt.present
+          ? data.smsReceivedAt.value
+          : this.smsReceivedAt,
+      category: data.category.present ? data.category.value : this.category,
+      isExcluded: data.isExcluded.present
+          ? data.isExcluded.value
+          : this.isExcluded,
       status: data.status.present ? data.status.value : this.status,
       bankName: data.bankName.present ? data.bankName.value : this.bankName,
       description: data.description.present
@@ -1795,7 +1934,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           ..write('cardId: $cardId, ')
           ..write('amount: $amount, ')
           ..write('currency: $currency, ')
+          ..write('direction: $direction, ')
           ..write('transactionDate: $transactionDate, ')
+          ..write('smsReceivedAt: $smsReceivedAt, ')
+          ..write('category: $category, ')
+          ..write('isExcluded: $isExcluded, ')
           ..write('status: $status, ')
           ..write('bankName: $bankName, ')
           ..write('description: $description, ')
@@ -1815,7 +1958,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
     cardId,
     amount,
     currency,
+    direction,
     transactionDate,
+    smsReceivedAt,
+    category,
+    isExcluded,
     status,
     bankName,
     description,
@@ -1834,7 +1981,11 @@ class Transaction extends DataClass implements Insertable<Transaction> {
           other.cardId == this.cardId &&
           other.amount == this.amount &&
           other.currency == this.currency &&
+          other.direction == this.direction &&
           other.transactionDate == this.transactionDate &&
+          other.smsReceivedAt == this.smsReceivedAt &&
+          other.category == this.category &&
+          other.isExcluded == this.isExcluded &&
           other.status == this.status &&
           other.bankName == this.bankName &&
           other.description == this.description &&
@@ -1851,7 +2002,11 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
   final Value<int?> cardId;
   final Value<double> amount;
   final Value<String> currency;
+  final Value<String> direction;
   final Value<DateTime> transactionDate;
+  final Value<DateTime> smsReceivedAt;
+  final Value<String> category;
+  final Value<bool> isExcluded;
   final Value<String> status;
   final Value<String?> bankName;
   final Value<String?> description;
@@ -1866,7 +2021,11 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     this.cardId = const Value.absent(),
     this.amount = const Value.absent(),
     this.currency = const Value.absent(),
+    this.direction = const Value.absent(),
     this.transactionDate = const Value.absent(),
+    this.smsReceivedAt = const Value.absent(),
+    this.category = const Value.absent(),
+    this.isExcluded = const Value.absent(),
     this.status = const Value.absent(),
     this.bankName = const Value.absent(),
     this.description = const Value.absent(),
@@ -1882,7 +2041,11 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     this.cardId = const Value.absent(),
     required double amount,
     this.currency = const Value.absent(),
+    this.direction = const Value.absent(),
     required DateTime transactionDate,
+    this.smsReceivedAt = const Value.absent(),
+    this.category = const Value.absent(),
+    this.isExcluded = const Value.absent(),
     required String status,
     this.bankName = const Value.absent(),
     this.description = const Value.absent(),
@@ -1900,7 +2063,11 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Expression<int>? cardId,
     Expression<double>? amount,
     Expression<String>? currency,
+    Expression<String>? direction,
     Expression<DateTime>? transactionDate,
+    Expression<DateTime>? smsReceivedAt,
+    Expression<String>? category,
+    Expression<bool>? isExcluded,
     Expression<String>? status,
     Expression<String>? bankName,
     Expression<String>? description,
@@ -1917,7 +2084,11 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       if (cardId != null) 'card_id': cardId,
       if (amount != null) 'amount': amount,
       if (currency != null) 'currency': currency,
+      if (direction != null) 'direction': direction,
       if (transactionDate != null) 'transaction_date': transactionDate,
+      if (smsReceivedAt != null) 'sms_received_at': smsReceivedAt,
+      if (category != null) 'category': category,
+      if (isExcluded != null) 'is_excluded': isExcluded,
       if (status != null) 'status': status,
       if (bankName != null) 'bank_name': bankName,
       if (description != null) 'description': description,
@@ -1935,7 +2106,11 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     Value<int?>? cardId,
     Value<double>? amount,
     Value<String>? currency,
+    Value<String>? direction,
     Value<DateTime>? transactionDate,
+    Value<DateTime>? smsReceivedAt,
+    Value<String>? category,
+    Value<bool>? isExcluded,
     Value<String>? status,
     Value<String?>? bankName,
     Value<String?>? description,
@@ -1952,7 +2127,11 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
       cardId: cardId ?? this.cardId,
       amount: amount ?? this.amount,
       currency: currency ?? this.currency,
+      direction: direction ?? this.direction,
       transactionDate: transactionDate ?? this.transactionDate,
+      smsReceivedAt: smsReceivedAt ?? this.smsReceivedAt,
+      category: category ?? this.category,
+      isExcluded: isExcluded ?? this.isExcluded,
       status: status ?? this.status,
       bankName: bankName ?? this.bankName,
       description: description ?? this.description,
@@ -1988,8 +2167,20 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
     if (currency.present) {
       map['currency'] = Variable<String>(currency.value);
     }
+    if (direction.present) {
+      map['direction'] = Variable<String>(direction.value);
+    }
     if (transactionDate.present) {
       map['transaction_date'] = Variable<DateTime>(transactionDate.value);
+    }
+    if (smsReceivedAt.present) {
+      map['sms_received_at'] = Variable<DateTime>(smsReceivedAt.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (isExcluded.present) {
+      map['is_excluded'] = Variable<bool>(isExcluded.value);
     }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
@@ -2022,7 +2213,11 @@ class TransactionsCompanion extends UpdateCompanion<Transaction> {
           ..write('cardId: $cardId, ')
           ..write('amount: $amount, ')
           ..write('currency: $currency, ')
+          ..write('direction: $direction, ')
           ..write('transactionDate: $transactionDate, ')
+          ..write('smsReceivedAt: $smsReceivedAt, ')
+          ..write('category: $category, ')
+          ..write('isExcluded: $isExcluded, ')
           ..write('status: $status, ')
           ..write('bankName: $bankName, ')
           ..write('description: $description, ')
@@ -3119,6 +3314,21 @@ class $SmsMessagesTable extends SmsMessages
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isDismissedMeta = const VerificationMeta(
+    'isDismissed',
+  );
+  @override
+  late final GeneratedColumn<bool> isDismissed = GeneratedColumn<bool>(
+    'is_dismissed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_dismissed" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -3139,6 +3349,7 @@ class $SmsMessagesTable extends SmsMessages
     receivedAt,
     isParsed,
     parseStatus,
+    isDismissed,
     createdAt,
   ];
   @override
@@ -3198,6 +3409,15 @@ class $SmsMessagesTable extends SmsMessages
         ),
       );
     }
+    if (data.containsKey('is_dismissed')) {
+      context.handle(
+        _isDismissedMeta,
+        isDismissed.isAcceptableOrUnknown(
+          data['is_dismissed']!,
+          _isDismissedMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -3237,6 +3457,10 @@ class $SmsMessagesTable extends SmsMessages
         DriftSqlType.string,
         data['${effectivePrefix}parse_status'],
       ),
+      isDismissed: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_dismissed'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -3257,6 +3481,7 @@ class SmsMessage extends DataClass implements Insertable<SmsMessage> {
   final DateTime receivedAt;
   final bool isParsed;
   final String? parseStatus;
+  final bool isDismissed;
   final DateTime createdAt;
   const SmsMessage({
     required this.id,
@@ -3265,6 +3490,7 @@ class SmsMessage extends DataClass implements Insertable<SmsMessage> {
     required this.receivedAt,
     required this.isParsed,
     this.parseStatus,
+    required this.isDismissed,
     required this.createdAt,
   });
   @override
@@ -3278,6 +3504,7 @@ class SmsMessage extends DataClass implements Insertable<SmsMessage> {
     if (!nullToAbsent || parseStatus != null) {
       map['parse_status'] = Variable<String>(parseStatus);
     }
+    map['is_dismissed'] = Variable<bool>(isDismissed);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -3292,6 +3519,7 @@ class SmsMessage extends DataClass implements Insertable<SmsMessage> {
       parseStatus: parseStatus == null && nullToAbsent
           ? const Value.absent()
           : Value(parseStatus),
+      isDismissed: Value(isDismissed),
       createdAt: Value(createdAt),
     );
   }
@@ -3308,6 +3536,7 @@ class SmsMessage extends DataClass implements Insertable<SmsMessage> {
       receivedAt: serializer.fromJson<DateTime>(json['receivedAt']),
       isParsed: serializer.fromJson<bool>(json['isParsed']),
       parseStatus: serializer.fromJson<String?>(json['parseStatus']),
+      isDismissed: serializer.fromJson<bool>(json['isDismissed']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -3321,6 +3550,7 @@ class SmsMessage extends DataClass implements Insertable<SmsMessage> {
       'receivedAt': serializer.toJson<DateTime>(receivedAt),
       'isParsed': serializer.toJson<bool>(isParsed),
       'parseStatus': serializer.toJson<String?>(parseStatus),
+      'isDismissed': serializer.toJson<bool>(isDismissed),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
@@ -3332,6 +3562,7 @@ class SmsMessage extends DataClass implements Insertable<SmsMessage> {
     DateTime? receivedAt,
     bool? isParsed,
     Value<String?> parseStatus = const Value.absent(),
+    bool? isDismissed,
     DateTime? createdAt,
   }) => SmsMessage(
     id: id ?? this.id,
@@ -3340,6 +3571,7 @@ class SmsMessage extends DataClass implements Insertable<SmsMessage> {
     receivedAt: receivedAt ?? this.receivedAt,
     isParsed: isParsed ?? this.isParsed,
     parseStatus: parseStatus.present ? parseStatus.value : this.parseStatus,
+    isDismissed: isDismissed ?? this.isDismissed,
     createdAt: createdAt ?? this.createdAt,
   );
   SmsMessage copyWithCompanion(SmsMessagesCompanion data) {
@@ -3356,6 +3588,9 @@ class SmsMessage extends DataClass implements Insertable<SmsMessage> {
       parseStatus: data.parseStatus.present
           ? data.parseStatus.value
           : this.parseStatus,
+      isDismissed: data.isDismissed.present
+          ? data.isDismissed.value
+          : this.isDismissed,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -3369,6 +3604,7 @@ class SmsMessage extends DataClass implements Insertable<SmsMessage> {
           ..write('receivedAt: $receivedAt, ')
           ..write('isParsed: $isParsed, ')
           ..write('parseStatus: $parseStatus, ')
+          ..write('isDismissed: $isDismissed, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -3382,6 +3618,7 @@ class SmsMessage extends DataClass implements Insertable<SmsMessage> {
     receivedAt,
     isParsed,
     parseStatus,
+    isDismissed,
     createdAt,
   );
   @override
@@ -3394,6 +3631,7 @@ class SmsMessage extends DataClass implements Insertable<SmsMessage> {
           other.receivedAt == this.receivedAt &&
           other.isParsed == this.isParsed &&
           other.parseStatus == this.parseStatus &&
+          other.isDismissed == this.isDismissed &&
           other.createdAt == this.createdAt);
 }
 
@@ -3404,6 +3642,7 @@ class SmsMessagesCompanion extends UpdateCompanion<SmsMessage> {
   final Value<DateTime> receivedAt;
   final Value<bool> isParsed;
   final Value<String?> parseStatus;
+  final Value<bool> isDismissed;
   final Value<DateTime> createdAt;
   const SmsMessagesCompanion({
     this.id = const Value.absent(),
@@ -3412,6 +3651,7 @@ class SmsMessagesCompanion extends UpdateCompanion<SmsMessage> {
     this.receivedAt = const Value.absent(),
     this.isParsed = const Value.absent(),
     this.parseStatus = const Value.absent(),
+    this.isDismissed = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   SmsMessagesCompanion.insert({
@@ -3421,6 +3661,7 @@ class SmsMessagesCompanion extends UpdateCompanion<SmsMessage> {
     required DateTime receivedAt,
     this.isParsed = const Value.absent(),
     this.parseStatus = const Value.absent(),
+    this.isDismissed = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : sender = Value(sender),
        messageBody = Value(messageBody),
@@ -3432,6 +3673,7 @@ class SmsMessagesCompanion extends UpdateCompanion<SmsMessage> {
     Expression<DateTime>? receivedAt,
     Expression<bool>? isParsed,
     Expression<String>? parseStatus,
+    Expression<bool>? isDismissed,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -3441,6 +3683,7 @@ class SmsMessagesCompanion extends UpdateCompanion<SmsMessage> {
       if (receivedAt != null) 'received_at': receivedAt,
       if (isParsed != null) 'is_parsed': isParsed,
       if (parseStatus != null) 'parse_status': parseStatus,
+      if (isDismissed != null) 'is_dismissed': isDismissed,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
@@ -3452,6 +3695,7 @@ class SmsMessagesCompanion extends UpdateCompanion<SmsMessage> {
     Value<DateTime>? receivedAt,
     Value<bool>? isParsed,
     Value<String?>? parseStatus,
+    Value<bool>? isDismissed,
     Value<DateTime>? createdAt,
   }) {
     return SmsMessagesCompanion(
@@ -3461,6 +3705,7 @@ class SmsMessagesCompanion extends UpdateCompanion<SmsMessage> {
       receivedAt: receivedAt ?? this.receivedAt,
       isParsed: isParsed ?? this.isParsed,
       parseStatus: parseStatus ?? this.parseStatus,
+      isDismissed: isDismissed ?? this.isDismissed,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -3486,6 +3731,9 @@ class SmsMessagesCompanion extends UpdateCompanion<SmsMessage> {
     if (parseStatus.present) {
       map['parse_status'] = Variable<String>(parseStatus.value);
     }
+    if (isDismissed.present) {
+      map['is_dismissed'] = Variable<bool>(isDismissed.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -3501,6 +3749,7 @@ class SmsMessagesCompanion extends UpdateCompanion<SmsMessage> {
           ..write('receivedAt: $receivedAt, ')
           ..write('isParsed: $isParsed, ')
           ..write('parseStatus: $parseStatus, ')
+          ..write('isDismissed: $isDismissed, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -4347,6 +4596,564 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   }
 }
 
+class $AutopayEventsTable extends AutopayEvents
+    with TableInfo<$AutopayEventsTable, AutopayEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AutopayEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _eventTypeMeta = const VerificationMeta(
+    'eventType',
+  );
+  @override
+  late final GeneratedColumn<String> eventType = GeneratedColumn<String>(
+    'event_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _merchantNameMeta = const VerificationMeta(
+    'merchantName',
+  );
+  @override
+  late final GeneratedColumn<String> merchantName = GeneratedColumn<String>(
+    'merchant_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bankNameMeta = const VerificationMeta(
+    'bankName',
+  );
+  @override
+  late final GeneratedColumn<String> bankName = GeneratedColumn<String>(
+    'bank_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _eventDateMeta = const VerificationMeta(
+    'eventDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> eventDate = GeneratedColumn<DateTime>(
+    'event_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referenceIdMeta = const VerificationMeta(
+    'referenceId',
+  );
+  @override
+  late final GeneratedColumn<String> referenceId = GeneratedColumn<String>(
+    'reference_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _smsSourceMeta = const VerificationMeta(
+    'smsSource',
+  );
+  @override
+  late final GeneratedColumn<String> smsSource = GeneratedColumn<String>(
+    'sms_source',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    eventType,
+    merchantName,
+    amount,
+    bankName,
+    eventDate,
+    referenceId,
+    smsSource,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'autopay_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AutopayEvent> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('event_type')) {
+      context.handle(
+        _eventTypeMeta,
+        eventType.isAcceptableOrUnknown(data['event_type']!, _eventTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventTypeMeta);
+    }
+    if (data.containsKey('merchant_name')) {
+      context.handle(
+        _merchantNameMeta,
+        merchantName.isAcceptableOrUnknown(
+          data['merchant_name']!,
+          _merchantNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_merchantNameMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('bank_name')) {
+      context.handle(
+        _bankNameMeta,
+        bankName.isAcceptableOrUnknown(data['bank_name']!, _bankNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bankNameMeta);
+    }
+    if (data.containsKey('event_date')) {
+      context.handle(
+        _eventDateMeta,
+        eventDate.isAcceptableOrUnknown(data['event_date']!, _eventDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_eventDateMeta);
+    }
+    if (data.containsKey('reference_id')) {
+      context.handle(
+        _referenceIdMeta,
+        referenceId.isAcceptableOrUnknown(
+          data['reference_id']!,
+          _referenceIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sms_source')) {
+      context.handle(
+        _smsSourceMeta,
+        smsSource.isAcceptableOrUnknown(data['sms_source']!, _smsSourceMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AutopayEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AutopayEvent(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      eventType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_type'],
+      )!,
+      merchantName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}merchant_name'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}amount'],
+      )!,
+      bankName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bank_name'],
+      )!,
+      eventDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}event_date'],
+      )!,
+      referenceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reference_id'],
+      ),
+      smsSource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sms_source'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $AutopayEventsTable createAlias(String alias) {
+    return $AutopayEventsTable(attachedDatabase, alias);
+  }
+}
+
+class AutopayEvent extends DataClass implements Insertable<AutopayEvent> {
+  final int id;
+  final String eventType;
+  final String merchantName;
+  final double amount;
+  final String bankName;
+  final DateTime eventDate;
+  final String? referenceId;
+  final String? smsSource;
+  final DateTime createdAt;
+  const AutopayEvent({
+    required this.id,
+    required this.eventType,
+    required this.merchantName,
+    required this.amount,
+    required this.bankName,
+    required this.eventDate,
+    this.referenceId,
+    this.smsSource,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['event_type'] = Variable<String>(eventType);
+    map['merchant_name'] = Variable<String>(merchantName);
+    map['amount'] = Variable<double>(amount);
+    map['bank_name'] = Variable<String>(bankName);
+    map['event_date'] = Variable<DateTime>(eventDate);
+    if (!nullToAbsent || referenceId != null) {
+      map['reference_id'] = Variable<String>(referenceId);
+    }
+    if (!nullToAbsent || smsSource != null) {
+      map['sms_source'] = Variable<String>(smsSource);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  AutopayEventsCompanion toCompanion(bool nullToAbsent) {
+    return AutopayEventsCompanion(
+      id: Value(id),
+      eventType: Value(eventType),
+      merchantName: Value(merchantName),
+      amount: Value(amount),
+      bankName: Value(bankName),
+      eventDate: Value(eventDate),
+      referenceId: referenceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(referenceId),
+      smsSource: smsSource == null && nullToAbsent
+          ? const Value.absent()
+          : Value(smsSource),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory AutopayEvent.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AutopayEvent(
+      id: serializer.fromJson<int>(json['id']),
+      eventType: serializer.fromJson<String>(json['eventType']),
+      merchantName: serializer.fromJson<String>(json['merchantName']),
+      amount: serializer.fromJson<double>(json['amount']),
+      bankName: serializer.fromJson<String>(json['bankName']),
+      eventDate: serializer.fromJson<DateTime>(json['eventDate']),
+      referenceId: serializer.fromJson<String?>(json['referenceId']),
+      smsSource: serializer.fromJson<String?>(json['smsSource']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'eventType': serializer.toJson<String>(eventType),
+      'merchantName': serializer.toJson<String>(merchantName),
+      'amount': serializer.toJson<double>(amount),
+      'bankName': serializer.toJson<String>(bankName),
+      'eventDate': serializer.toJson<DateTime>(eventDate),
+      'referenceId': serializer.toJson<String?>(referenceId),
+      'smsSource': serializer.toJson<String?>(smsSource),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  AutopayEvent copyWith({
+    int? id,
+    String? eventType,
+    String? merchantName,
+    double? amount,
+    String? bankName,
+    DateTime? eventDate,
+    Value<String?> referenceId = const Value.absent(),
+    Value<String?> smsSource = const Value.absent(),
+    DateTime? createdAt,
+  }) => AutopayEvent(
+    id: id ?? this.id,
+    eventType: eventType ?? this.eventType,
+    merchantName: merchantName ?? this.merchantName,
+    amount: amount ?? this.amount,
+    bankName: bankName ?? this.bankName,
+    eventDate: eventDate ?? this.eventDate,
+    referenceId: referenceId.present ? referenceId.value : this.referenceId,
+    smsSource: smsSource.present ? smsSource.value : this.smsSource,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  AutopayEvent copyWithCompanion(AutopayEventsCompanion data) {
+    return AutopayEvent(
+      id: data.id.present ? data.id.value : this.id,
+      eventType: data.eventType.present ? data.eventType.value : this.eventType,
+      merchantName: data.merchantName.present
+          ? data.merchantName.value
+          : this.merchantName,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      bankName: data.bankName.present ? data.bankName.value : this.bankName,
+      eventDate: data.eventDate.present ? data.eventDate.value : this.eventDate,
+      referenceId: data.referenceId.present
+          ? data.referenceId.value
+          : this.referenceId,
+      smsSource: data.smsSource.present ? data.smsSource.value : this.smsSource,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AutopayEvent(')
+          ..write('id: $id, ')
+          ..write('eventType: $eventType, ')
+          ..write('merchantName: $merchantName, ')
+          ..write('amount: $amount, ')
+          ..write('bankName: $bankName, ')
+          ..write('eventDate: $eventDate, ')
+          ..write('referenceId: $referenceId, ')
+          ..write('smsSource: $smsSource, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    eventType,
+    merchantName,
+    amount,
+    bankName,
+    eventDate,
+    referenceId,
+    smsSource,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AutopayEvent &&
+          other.id == this.id &&
+          other.eventType == this.eventType &&
+          other.merchantName == this.merchantName &&
+          other.amount == this.amount &&
+          other.bankName == this.bankName &&
+          other.eventDate == this.eventDate &&
+          other.referenceId == this.referenceId &&
+          other.smsSource == this.smsSource &&
+          other.createdAt == this.createdAt);
+}
+
+class AutopayEventsCompanion extends UpdateCompanion<AutopayEvent> {
+  final Value<int> id;
+  final Value<String> eventType;
+  final Value<String> merchantName;
+  final Value<double> amount;
+  final Value<String> bankName;
+  final Value<DateTime> eventDate;
+  final Value<String?> referenceId;
+  final Value<String?> smsSource;
+  final Value<DateTime> createdAt;
+  const AutopayEventsCompanion({
+    this.id = const Value.absent(),
+    this.eventType = const Value.absent(),
+    this.merchantName = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.bankName = const Value.absent(),
+    this.eventDate = const Value.absent(),
+    this.referenceId = const Value.absent(),
+    this.smsSource = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  AutopayEventsCompanion.insert({
+    this.id = const Value.absent(),
+    required String eventType,
+    required String merchantName,
+    required double amount,
+    required String bankName,
+    required DateTime eventDate,
+    this.referenceId = const Value.absent(),
+    this.smsSource = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  }) : eventType = Value(eventType),
+       merchantName = Value(merchantName),
+       amount = Value(amount),
+       bankName = Value(bankName),
+       eventDate = Value(eventDate);
+  static Insertable<AutopayEvent> custom({
+    Expression<int>? id,
+    Expression<String>? eventType,
+    Expression<String>? merchantName,
+    Expression<double>? amount,
+    Expression<String>? bankName,
+    Expression<DateTime>? eventDate,
+    Expression<String>? referenceId,
+    Expression<String>? smsSource,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (eventType != null) 'event_type': eventType,
+      if (merchantName != null) 'merchant_name': merchantName,
+      if (amount != null) 'amount': amount,
+      if (bankName != null) 'bank_name': bankName,
+      if (eventDate != null) 'event_date': eventDate,
+      if (referenceId != null) 'reference_id': referenceId,
+      if (smsSource != null) 'sms_source': smsSource,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  AutopayEventsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? eventType,
+    Value<String>? merchantName,
+    Value<double>? amount,
+    Value<String>? bankName,
+    Value<DateTime>? eventDate,
+    Value<String?>? referenceId,
+    Value<String?>? smsSource,
+    Value<DateTime>? createdAt,
+  }) {
+    return AutopayEventsCompanion(
+      id: id ?? this.id,
+      eventType: eventType ?? this.eventType,
+      merchantName: merchantName ?? this.merchantName,
+      amount: amount ?? this.amount,
+      bankName: bankName ?? this.bankName,
+      eventDate: eventDate ?? this.eventDate,
+      referenceId: referenceId ?? this.referenceId,
+      smsSource: smsSource ?? this.smsSource,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (eventType.present) {
+      map['event_type'] = Variable<String>(eventType.value);
+    }
+    if (merchantName.present) {
+      map['merchant_name'] = Variable<String>(merchantName.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (bankName.present) {
+      map['bank_name'] = Variable<String>(bankName.value);
+    }
+    if (eventDate.present) {
+      map['event_date'] = Variable<DateTime>(eventDate.value);
+    }
+    if (referenceId.present) {
+      map['reference_id'] = Variable<String>(referenceId.value);
+    }
+    if (smsSource.present) {
+      map['sms_source'] = Variable<String>(smsSource.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AutopayEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('eventType: $eventType, ')
+          ..write('merchantName: $merchantName, ')
+          ..write('amount: $amount, ')
+          ..write('bankName: $bankName, ')
+          ..write('eventDate: $eventDate, ')
+          ..write('referenceId: $referenceId, ')
+          ..write('smsSource: $smsSource, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4362,6 +5169,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TransactionCategoriesTable transactionCategories =
       $TransactionCategoriesTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
+  late final $AutopayEventsTable autopayEvents = $AutopayEventsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4377,6 +5185,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     categories,
     transactionCategories,
     appSettings,
+    autopayEvents,
   ];
 }
 
@@ -5333,7 +6142,11 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       Value<int?> cardId,
       required double amount,
       Value<String> currency,
+      Value<String> direction,
       required DateTime transactionDate,
+      Value<DateTime> smsReceivedAt,
+      Value<String> category,
+      Value<bool> isExcluded,
       required String status,
       Value<String?> bankName,
       Value<String?> description,
@@ -5350,7 +6163,11 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<int?> cardId,
       Value<double> amount,
       Value<String> currency,
+      Value<String> direction,
       Value<DateTime> transactionDate,
+      Value<DateTime> smsReceivedAt,
+      Value<String> category,
+      Value<bool> isExcluded,
       Value<String> status,
       Value<String?> bankName,
       Value<String?> description,
@@ -5510,8 +6327,28 @@ class $$TransactionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get direction => $composableBuilder(
+    column: $table.direction,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<DateTime> get transactionDate => $composableBuilder(
     column: $table.transactionDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get smsReceivedAt => $composableBuilder(
+    column: $table.smsReceivedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isExcluded => $composableBuilder(
+    column: $table.isExcluded,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5720,8 +6557,28 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get direction => $composableBuilder(
+    column: $table.direction,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get transactionDate => $composableBuilder(
     column: $table.transactionDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get smsReceivedAt => $composableBuilder(
+    column: $table.smsReceivedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isExcluded => $composableBuilder(
+    column: $table.isExcluded,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -5848,8 +6705,24 @@ class $$TransactionsTableAnnotationComposer
   GeneratedColumn<String> get currency =>
       $composableBuilder(column: $table.currency, builder: (column) => column);
 
+  GeneratedColumn<String> get direction =>
+      $composableBuilder(column: $table.direction, builder: (column) => column);
+
   GeneratedColumn<DateTime> get transactionDate => $composableBuilder(
     column: $table.transactionDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get smsReceivedAt => $composableBuilder(
+    column: $table.smsReceivedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<bool> get isExcluded => $composableBuilder(
+    column: $table.isExcluded,
     builder: (column) => column,
   );
 
@@ -6062,7 +6935,11 @@ class $$TransactionsTableTableManager
                 Value<int?> cardId = const Value.absent(),
                 Value<double> amount = const Value.absent(),
                 Value<String> currency = const Value.absent(),
+                Value<String> direction = const Value.absent(),
                 Value<DateTime> transactionDate = const Value.absent(),
+                Value<DateTime> smsReceivedAt = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<bool> isExcluded = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String?> bankName = const Value.absent(),
                 Value<String?> description = const Value.absent(),
@@ -6077,7 +6954,11 @@ class $$TransactionsTableTableManager
                 cardId: cardId,
                 amount: amount,
                 currency: currency,
+                direction: direction,
                 transactionDate: transactionDate,
+                smsReceivedAt: smsReceivedAt,
+                category: category,
+                isExcluded: isExcluded,
                 status: status,
                 bankName: bankName,
                 description: description,
@@ -6094,7 +6975,11 @@ class $$TransactionsTableTableManager
                 Value<int?> cardId = const Value.absent(),
                 required double amount,
                 Value<String> currency = const Value.absent(),
+                Value<String> direction = const Value.absent(),
                 required DateTime transactionDate,
+                Value<DateTime> smsReceivedAt = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<bool> isExcluded = const Value.absent(),
                 required String status,
                 Value<String?> bankName = const Value.absent(),
                 Value<String?> description = const Value.absent(),
@@ -6109,7 +6994,11 @@ class $$TransactionsTableTableManager
                 cardId: cardId,
                 amount: amount,
                 currency: currency,
+                direction: direction,
                 transactionDate: transactionDate,
+                smsReceivedAt: smsReceivedAt,
+                category: category,
+                isExcluded: isExcluded,
                 status: status,
                 bankName: bankName,
                 description: description,
@@ -7031,6 +7920,7 @@ typedef $$SmsMessagesTableCreateCompanionBuilder =
       required DateTime receivedAt,
       Value<bool> isParsed,
       Value<String?> parseStatus,
+      Value<bool> isDismissed,
       Value<DateTime> createdAt,
     });
 typedef $$SmsMessagesTableUpdateCompanionBuilder =
@@ -7041,6 +7931,7 @@ typedef $$SmsMessagesTableUpdateCompanionBuilder =
       Value<DateTime> receivedAt,
       Value<bool> isParsed,
       Value<String?> parseStatus,
+      Value<bool> isDismissed,
       Value<DateTime> createdAt,
     });
 
@@ -7080,6 +7971,11 @@ class $$SmsMessagesTableFilterComposer
 
   ColumnFilters<String> get parseStatus => $composableBuilder(
     column: $table.parseStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDismissed => $composableBuilder(
+    column: $table.isDismissed,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7128,6 +8024,11 @@ class $$SmsMessagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isDismissed => $composableBuilder(
+    column: $table.isDismissed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -7164,6 +8065,11 @@ class $$SmsMessagesTableAnnotationComposer
 
   GeneratedColumn<String> get parseStatus => $composableBuilder(
     column: $table.parseStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isDismissed => $composableBuilder(
+    column: $table.isDismissed,
     builder: (column) => column,
   );
 
@@ -7208,6 +8114,7 @@ class $$SmsMessagesTableTableManager
                 Value<DateTime> receivedAt = const Value.absent(),
                 Value<bool> isParsed = const Value.absent(),
                 Value<String?> parseStatus = const Value.absent(),
+                Value<bool> isDismissed = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => SmsMessagesCompanion(
                 id: id,
@@ -7216,6 +8123,7 @@ class $$SmsMessagesTableTableManager
                 receivedAt: receivedAt,
                 isParsed: isParsed,
                 parseStatus: parseStatus,
+                isDismissed: isDismissed,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
@@ -7226,6 +8134,7 @@ class $$SmsMessagesTableTableManager
                 required DateTime receivedAt,
                 Value<bool> isParsed = const Value.absent(),
                 Value<String?> parseStatus = const Value.absent(),
+                Value<bool> isDismissed = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => SmsMessagesCompanion.insert(
                 id: id,
@@ -7234,6 +8143,7 @@ class $$SmsMessagesTableTableManager
                 receivedAt: receivedAt,
                 isParsed: isParsed,
                 parseStatus: parseStatus,
+                isDismissed: isDismissed,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
@@ -8108,6 +9018,289 @@ typedef $$AppSettingsTableProcessedTableManager =
       AppSetting,
       PrefetchHooks Function()
     >;
+typedef $$AutopayEventsTableCreateCompanionBuilder =
+    AutopayEventsCompanion Function({
+      Value<int> id,
+      required String eventType,
+      required String merchantName,
+      required double amount,
+      required String bankName,
+      required DateTime eventDate,
+      Value<String?> referenceId,
+      Value<String?> smsSource,
+      Value<DateTime> createdAt,
+    });
+typedef $$AutopayEventsTableUpdateCompanionBuilder =
+    AutopayEventsCompanion Function({
+      Value<int> id,
+      Value<String> eventType,
+      Value<String> merchantName,
+      Value<double> amount,
+      Value<String> bankName,
+      Value<DateTime> eventDate,
+      Value<String?> referenceId,
+      Value<String?> smsSource,
+      Value<DateTime> createdAt,
+    });
+
+class $$AutopayEventsTableFilterComposer
+    extends Composer<_$AppDatabase, $AutopayEventsTable> {
+  $$AutopayEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventType => $composableBuilder(
+    column: $table.eventType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get merchantName => $composableBuilder(
+    column: $table.merchantName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bankName => $composableBuilder(
+    column: $table.bankName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get eventDate => $composableBuilder(
+    column: $table.eventDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get referenceId => $composableBuilder(
+    column: $table.referenceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get smsSource => $composableBuilder(
+    column: $table.smsSource,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AutopayEventsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AutopayEventsTable> {
+  $$AutopayEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventType => $composableBuilder(
+    column: $table.eventType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get merchantName => $composableBuilder(
+    column: $table.merchantName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bankName => $composableBuilder(
+    column: $table.bankName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get eventDate => $composableBuilder(
+    column: $table.eventDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get referenceId => $composableBuilder(
+    column: $table.referenceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get smsSource => $composableBuilder(
+    column: $table.smsSource,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AutopayEventsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AutopayEventsTable> {
+  $$AutopayEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get eventType =>
+      $composableBuilder(column: $table.eventType, builder: (column) => column);
+
+  GeneratedColumn<String> get merchantName => $composableBuilder(
+    column: $table.merchantName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get bankName =>
+      $composableBuilder(column: $table.bankName, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get eventDate =>
+      $composableBuilder(column: $table.eventDate, builder: (column) => column);
+
+  GeneratedColumn<String> get referenceId => $composableBuilder(
+    column: $table.referenceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get smsSource =>
+      $composableBuilder(column: $table.smsSource, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$AutopayEventsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AutopayEventsTable,
+          AutopayEvent,
+          $$AutopayEventsTableFilterComposer,
+          $$AutopayEventsTableOrderingComposer,
+          $$AutopayEventsTableAnnotationComposer,
+          $$AutopayEventsTableCreateCompanionBuilder,
+          $$AutopayEventsTableUpdateCompanionBuilder,
+          (
+            AutopayEvent,
+            BaseReferences<_$AppDatabase, $AutopayEventsTable, AutopayEvent>,
+          ),
+          AutopayEvent,
+          PrefetchHooks Function()
+        > {
+  $$AutopayEventsTableTableManager(_$AppDatabase db, $AutopayEventsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AutopayEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AutopayEventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AutopayEventsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> eventType = const Value.absent(),
+                Value<String> merchantName = const Value.absent(),
+                Value<double> amount = const Value.absent(),
+                Value<String> bankName = const Value.absent(),
+                Value<DateTime> eventDate = const Value.absent(),
+                Value<String?> referenceId = const Value.absent(),
+                Value<String?> smsSource = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => AutopayEventsCompanion(
+                id: id,
+                eventType: eventType,
+                merchantName: merchantName,
+                amount: amount,
+                bankName: bankName,
+                eventDate: eventDate,
+                referenceId: referenceId,
+                smsSource: smsSource,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String eventType,
+                required String merchantName,
+                required double amount,
+                required String bankName,
+                required DateTime eventDate,
+                Value<String?> referenceId = const Value.absent(),
+                Value<String?> smsSource = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => AutopayEventsCompanion.insert(
+                id: id,
+                eventType: eventType,
+                merchantName: merchantName,
+                amount: amount,
+                bankName: bankName,
+                eventDate: eventDate,
+                referenceId: referenceId,
+                smsSource: smsSource,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AutopayEventsTable, AutopayEvent>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $AutopayEventsTable,
+                    AutopayEvent
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AutopayEventsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AutopayEventsTable,
+      AutopayEvent,
+      $$AutopayEventsTableFilterComposer,
+      $$AutopayEventsTableOrderingComposer,
+      $$AutopayEventsTableAnnotationComposer,
+      $$AutopayEventsTableCreateCompanionBuilder,
+      $$AutopayEventsTableUpdateCompanionBuilder,
+      (
+        AutopayEvent,
+        BaseReferences<_$AppDatabase, $AutopayEventsTable, AutopayEvent>,
+      ),
+      AutopayEvent,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -8132,4 +9325,6 @@ class $AppDatabaseManager {
       $$TransactionCategoriesTableTableManager(_db, _db.transactionCategories);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
+  $$AutopayEventsTableTableManager get autopayEvents =>
+      $$AutopayEventsTableTableManager(_db, _db.autopayEvents);
 }
